@@ -4,10 +4,6 @@
 # Maven
 target/
 
-# Spring Boot - Archivos con información sensible
-application.properties
-application-*.properties
-
 # Archivos temporales Linux
 *~
 *.tmp

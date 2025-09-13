@@ -4,8 +4,14 @@ package belgrano.finalProgra3.entity;
 	import jakarta.persistence.GeneratedValue;
 	import jakarta.persistence.GenerationType;
 	import jakarta.persistence.Id;
-	@Entity	
-	
+    import lombok.AllArgsConstructor;
+    import lombok.Data;
+    import lombok.NoArgsConstructor;
+
+@Entity
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 	public class Factura {
 
 		@Id	
@@ -15,31 +21,6 @@ package belgrano.finalProgra3.entity;
 		private Long reservaId;
 		private Double total;
 		private String detalles;
-		
-		public Long getId() {
-			return id;
-		}
-		public void setId(Long id) {
-			this.id = id;
-		}
-		public Long getReservaId() {
-			return reservaId;
-		}
-		public void setReservaId(Long reservaId) {
-			this.reservaId = reservaId;
-		}
-		public Double getTotal() {
-			return total;
-		}
-		public void setTotal(Double total) {
-			this.total = total;
-		}
-		public String getDetalles() {
-			return detalles;
-		}
-		public void setDetalles(String detalles) {
-			this.detalles = detalles;
-		}
 
 }
 

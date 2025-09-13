@@ -1,0 +1,12 @@
+# IDE - IntelliJ IDEA
+.idea/
+
+# Maven
+target/
+
+# Archivos temporales Linux
+*~
+*.tmp
+*.bak
+*.swp
+.*.swp

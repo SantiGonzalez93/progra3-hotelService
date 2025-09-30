@@ -6,9 +6,9 @@ import belgrano.finalProgra3.entity.Empleado;
 
 public interface IEmpleadoService {
 
-	public abstract List <Empleado> getAll();
-	public abstract Empleado getById (Long id);
-	public abstract Empleado save (Empleado empleado);
-	public abstract void delete (Long id);
-	public abstract boolean exists(Long id);
+	List <Empleado> getAll();
+    Empleado getById (Long id);
+	Empleado save (Empleado empleado);
+	void delete (Long id);
+	boolean exists(Long id);
 }

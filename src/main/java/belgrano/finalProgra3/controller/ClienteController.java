@@ -1,103 +1,93 @@
 package belgrano.finalProgra3.controller;
 
-import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import belgrano.finalProgra3.service.IClienteService;
 import belgrano.finalProgra3.dto.ResponseDto;
 import belgrano.finalProgra3.entity.Cliente;
+import belgrano.finalProgra3.service.IClienteService;
 
 @RestController
-
+@RequestMapping("/cliente")
 public class ClienteController {
 
-	@Autowired
-	private IClienteService service;
-	
-	@GetMapping("/cliente")
+    @Autowired
+    private IClienteService service;
 
-	public ResponseDto<List<Cliente>> buscarTodosLosCliente() {
-		List<Cliente> listaCliente;
-		listaCliente = new ArrayList();
-		listaCliente = service.getAll();
+    @GetMapping
+    public ResponseEntity<ResponseDto<List<Cliente>>> buscarTodosLosCliente() {
 
-		ResponseDto<List<Cliente>> dto;
-		dto = new ResponseDto<List<Cliente>>();		
+        return !service.getAll().isEmpty()
+                ? new ResponseEntity<>(new ResponseDto<>(true, "Se encontraron los siguientes clientes", service.getAll()), HttpStatus.OK)
+                : new ResponseEntity<>(new ResponseDto<>(false, "No se encontraron clientes", service.getAll()), HttpStatus.NOT_FOUND);
+    }
 
-		if(listaCliente.isEmpty()) {
-			dto.setEstado(false);
-			List<String> mensajes = new ArrayList();
-			mensajes.add("No se encontraron clientes");
-			dto.setMessage(mensajes);
-			dto.setData(null);
-		}else {
-			List<String> mensajes = new ArrayList();
-			mensajes.add("Se encontraron los siguientes clientes");
-			dto.setEstado(true);
-			dto.setMessage(mensajes);
-			dto.setData(listaCliente);
-		}		
-		return dto;
-	}
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseDto<Cliente>> buscarPorId(@PathVariable("id") Long id) {
 
+        return service.exists(id)
+                ? new ResponseEntity<>(new ResponseDto<>(true, "Cliente con id: " + id.toString() + " encontrado", service.getById(id)), HttpStatus.OK)
+                : new ResponseEntity<>(new ResponseDto<>(false, "No existe un cliente con id: " + id.toString()), HttpStatus.NOT_FOUND);
+    }
 
-	@GetMapping("/cliente/{id}")
+    @PostMapping
+    public ResponseEntity<ResponseDto<Cliente>> crearNuevoCliente(@RequestBody Cliente cliente) {
 
-	public ResponseDto <Cliente> buscarPorId(@PathVariable("id") Long id) {
-		if (service.exists(id)) {
-			Cliente cliente = new Cliente ();
-			cliente = service.getById(id);
-			ResponseDto <Cliente> dto;
-			dto = new ResponseDto <Cliente> (true, "OK",cliente);
-			return dto;
-		}else {
-			return new ResponseDto <Cliente> (false, "No existe un cliente con esa ID",null);
-		}
-	}
+        if (cliente.getId() == null) {
 
-	@PostMapping("/cliente")
+            return new ResponseEntity<>(new ResponseDto<>(true, "Cliente creado con exito", service.save(cliente)), HttpStatus.OK);
 
-	public ResponseDto <Cliente> crearNuevoEmpleado(@RequestBody Cliente clienteDesdeElServicio) {
-		if (service.exists(clienteDesdeElServicio.getId())) {
-			return new ResponseDto<Cliente>(false, "Este id ya le pertenece a otro cliente",null);
+        } else {
+            if (service.exists(cliente.getId())) {
 
-		}else {
-			return new ResponseDto<Cliente>(true,"Cliente creado con exito",service.save(clienteDesdeElServicio));
-		}
+                return new ResponseEntity<>(new ResponseDto<>(false, "El cliente con id: " + cliente.getId().toString() + " ya existe", service.getById(cliente.getId())), HttpStatus.BAD_REQUEST);
 
-	}
+            } else {
 
-	@DeleteMapping("/cliente/{id}")
+                return new ResponseEntity<>(new ResponseDto<>(false, "Peticion erronea, enviar nuevamente sin ID"), HttpStatus.BAD_REQUEST);
+            }
+        }
+    }
 
-	public ResponseDto <?> delete(@PathVariable("id") Long id) {
-		if (service.exists(id)) {
-			service.delete(id);
-			return new ResponseDto<>(true,"Cliente eliminado con ID" + id.toString(), null);
-		}else{
-			return new ResponseDto<>(false,"No se encontro ID" + id.toString(),null);
+    @PutMapping
+    public ResponseEntity<ResponseDto<Cliente>> actualizarCliente(@RequestBody Cliente cliente) {
 
-		}
-	}
+        if (cliente.getId() != null) {
 
-	@PutMapping("/cliente")
+            if (service.exists(cliente.getId())) {
 
-	public ResponseDto <Cliente> actualizarNuevoCliente(@RequestBody Cliente clienteDesdeElServicio) {
-		if (service.exists(clienteDesdeElServicio.getId())) {
-			return new ResponseDto<Cliente>(true, "Empleado actualizado con exito",service.save(clienteDesdeElServicio));
+                return new ResponseEntity<>(new ResponseDto<>(true, "Cliente con id: " + cliente.getId().toString() + " actualizado", service.save(cliente)), HttpStatus.OK);
 
-		}else {
-			return new ResponseDto<Cliente>(false,"ID no encontrado" + clienteDesdeElServicio.getId().toString(),null);
-		}
+            } else {
 
-	}
+                return new ResponseEntity<>(new ResponseDto<>(false, "El id: " + cliente.getId().toString() + " para actualizar es invalido"), HttpStatus.BAD_REQUEST);
+            }
+        } else {
 
+            return new ResponseEntity<>(new ResponseDto<>(false, "Para actualizar un Cliente ingrese un ID valido"), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResponseDto<Cliente>> delete(@PathVariable("id") Long id) {
+
+        if (service.exists(id)) {
+
+            service.delete(id);
+            return new ResponseEntity<>(new ResponseDto<>(true, "Cliente con id: " + id.toString() + " ha sido eliminado"), HttpStatus.OK);
+
+        } else {
+
+            return new ResponseEntity<>(new ResponseDto<>(false, "Cliente con id: " + id.toString() + " No existe"), HttpStatus.BAD_REQUEST);
+        }
+    }
 }

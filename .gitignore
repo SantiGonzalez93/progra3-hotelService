@@ -10,3 +10,7 @@ target/
 *.bak
 *.swp
 .*.swp
+
+# Node
+frontend/node_modules/
+build/

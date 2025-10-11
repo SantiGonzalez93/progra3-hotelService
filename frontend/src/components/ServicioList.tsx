@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Table, Badge, Alert, Button, Modal, Form, Row, Col, Card } from 'react-bootstrap';
 import { Servicio } from '../types';
 import { servicioService } from '../services/api';
+import { useAppContext } from '../context/AppContext';
 
-interface ServicioListProps {
-  onError: (error: string | null) => void;
-  onLoading: (loading: boolean) => void;
-}
-
-const ServicioList: React.FC<ServicioListProps> = ({ onError, onLoading }) => {
-  const [servicios, setServicios] = useState<Servicio[]>([]);
+const ServicioList: React.FC = () => {
+  const { servicios, addServicio, updateServicio, removeServicio } = useAppContext();
+  // Ya no necesitamos el estado local, viene del contexto
   const [showModal, setShowModal] = useState(false);
   const [editingServicio, setEditingServicio] = useState<Servicio | null>(null);
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
@@ -20,22 +17,7 @@ const ServicioList: React.FC<ServicioListProps> = ({ onError, onLoading }) => {
     disponibilidad: true
   });
 
-  const loadServicios = async () => {
-    try {
-      onLoading(true);
-      onError(null);
-      const response = await servicioService.getAll();
-      setServicios(response.data);
-    } catch (error) {
-      onError('Error al cargar los servicios. Asegúrate de que el backend esté ejecutándose en http://localhost:7080');
-    } finally {
-      onLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadServicios();
-  }, []);
+  // Ya no necesitamos cargar servicios, vienen del contexto
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-AR', {
@@ -88,64 +70,88 @@ const ServicioList: React.FC<ServicioListProps> = ({ onError, onLoading }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      onLoading(true);
-      onError(null);
-
       if (editingServicio) {
-        await servicioService.update({ ...formData, id: editingServicio.id });
+        const servicioActualizado = { ...formData, id: editingServicio.id };
+        await servicioService.update(servicioActualizado);
+        updateServicio(servicioActualizado);
       } else {
-        await servicioService.create(formData);
+        const response = await servicioService.create(formData);
+        if (response.estado) {
+          // El backend devuelve un array, tomamos el primer elemento
+          addServicio(response.data[0]);
+        }
       }
 
-      await loadServicios();
       handleCloseModal();
     } catch (error) {
-      onError('Error al guardar el servicio');
-    } finally {
-      onLoading(false);
+      console.error('Error al guardar el servicio:', error);
     }
   };
 
   const handleDelete = async (id: number) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este servicio?')) {
       try {
-        onLoading(true);
-        onError(null);
         await servicioService.delete(id);
-        await loadServicios();
+        removeServicio(id);
       } catch (error) {
-        onError('Error al eliminar el servicio');
-      } finally {
-        onLoading(false);
+        console.error('Error al eliminar el servicio:', error);
       }
     }
   };
 
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5>Lista de Servicios</h5>
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
+          <h5 className="mb-1" style={{ color: '#495057', fontWeight: 'bold' }}>Lista de Servicios</h5>
+          <p className="text-muted mb-0" style={{ fontSize: '14px' }}>Gestiona los servicios del hotel</p>
+        </div>
+        <div className="d-flex gap-2">
           <Button 
-            variant={viewMode === 'table' ? 'outline-primary' : 'outline-secondary'} 
+            variant={viewMode === 'table' ? 'primary' : 'outline-primary'} 
             onClick={() => setViewMode('table')}
-            className="me-2"
             size="sm"
+            style={{ 
+              borderRadius: '20px', 
+              padding: '6px 16px',
+              fontWeight: '500'
+            }}
           >
             📋 Tabla
           </Button>
           <Button 
-            variant={viewMode === 'cards' ? 'outline-primary' : 'outline-secondary'} 
+            variant={viewMode === 'cards' ? 'primary' : 'outline-primary'} 
             onClick={() => setViewMode('cards')}
-            className="me-2"
             size="sm"
+            style={{ 
+              borderRadius: '20px', 
+              padding: '6px 16px',
+              fontWeight: '500'
+            }}
           >
             🃏 Tarjetas
           </Button>
-          <Button variant="success" onClick={() => handleShowModal()} className="me-2">
+          <Button 
+            variant="success" 
+            onClick={() => handleShowModal()} 
+            style={{ 
+              borderRadius: '25px', 
+              padding: '8px 20px',
+              fontWeight: '500',
+              boxShadow: '0 2px 4px rgba(40, 167, 69, 0.3)'
+            }}
+          >
             ➕ Nuevo Servicio
           </Button>
-          <Button variant="primary" onClick={loadServicios}>
+          <Button 
+            variant="outline-primary" 
+            onClick={() => window.location.reload()}
+            style={{ 
+              borderRadius: '25px', 
+              padding: '8px 20px',
+              fontWeight: '500'
+            }}
+          >
             🔄 Actualizar
           </Button>
         </div>

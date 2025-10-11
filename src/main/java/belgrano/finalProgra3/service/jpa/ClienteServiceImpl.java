@@ -42,6 +42,12 @@ public class ClienteServiceImpl implements IClienteService{
 		
 		repositoryCliente.deleteById(id);
 	}
+	
+	@Override
+	public void deleteById(Long id) {
+		
+		repositoryCliente.deleteById(id);
+	}
 	@Override 
 	public boolean exists(Long id) {
 		if (id != null) {

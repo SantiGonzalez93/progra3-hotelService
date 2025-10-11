@@ -10,5 +10,6 @@ public interface IEmpleadoService {
     Empleado getById (Long id);
 	Empleado save (Empleado empleado);
 	void delete (Long id);
+	void deleteById (Long id);
 	boolean exists(Long id);
 }

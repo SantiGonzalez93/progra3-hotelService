@@ -1,41 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Table, Badge, Alert, Button, Modal, Form, Row, Col } from 'react-bootstrap';
 import { Habitacion } from '../types';
 import { habitacionService } from '../services/api';
+import { useAppContext } from '../context/AppContext';
 
-interface HabitacionListProps {
-  onError: (error: string | null) => void;
-  onLoading: (loading: boolean) => void;
-}
-
-const HabitacionList: React.FC<HabitacionListProps> = ({ onError, onLoading }) => {
-  const [habitaciones, setHabitaciones] = useState<Habitacion[]>([]);
+const HabitacionList: React.FC = () => {
+  const { habitaciones, addHabitacion, updateHabitacion, removeHabitacion } = useAppContext();
+  // Ya no necesitamos el estado local, viene del contexto
   const [showModal, setShowModal] = useState(false);
   const [editingHabitacion, setEditingHabitacion] = useState<Habitacion | null>(null);
   const [formData, setFormData] = useState({
-    numero: '',
+    numero: 0,
     tipo: '',
     precioPorNoche: 0,
     estado: 'Limpia',
     disponible: true
   });
 
-  const loadHabitaciones = async () => {
-    try {
-      onLoading(true);
-      onError(null);
-      const response = await habitacionService.getAll();
-      setHabitaciones(response.data);
-    } catch (error) {
-      onError('Error al cargar las habitaciones. Asegúrate de que el backend esté ejecutándose en http://localhost:7080');
-    } finally {
-      onLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadHabitaciones();
-  }, []);
+  // Ya no necesitamos cargar habitaciones, vienen del contexto
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-AR', {
@@ -71,7 +53,7 @@ const HabitacionList: React.FC<HabitacionListProps> = ({ onError, onLoading }) =
     } else {
       setEditingHabitacion(null);
       setFormData({
-        numero: '',
+        numero: 0,
         tipo: '',
         precioPorNoche: 0,
         estado: 'Limpia',
@@ -85,7 +67,7 @@ const HabitacionList: React.FC<HabitacionListProps> = ({ onError, onLoading }) =
     setShowModal(false);
     setEditingHabitacion(null);
     setFormData({
-      numero: '',
+      numero: 0,
       tipo: '',
       precioPorNoche: 0,
       estado: 'Limpia',
@@ -98,121 +80,205 @@ const HabitacionList: React.FC<HabitacionListProps> = ({ onError, onLoading }) =
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
-              (name === 'precioPorNoche' ? parseFloat(value) || 0 : value)
+              (name === 'precioPorNoche' || name === 'numero' ? parseFloat(value) || 0 : value)
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      onLoading(true);
-      onError(null);
-
       if (editingHabitacion) {
-        await habitacionService.update({ ...formData, id: editingHabitacion.id });
+        const habitacionActualizada = { ...formData, id: editingHabitacion.id };
+        await habitacionService.update(habitacionActualizada);
+        updateHabitacion(habitacionActualizada);
       } else {
-        await habitacionService.create(formData);
+        const response = await habitacionService.create(formData);
+        if (response.estado) {
+          // El backend devuelve un array, tomamos el primer elemento
+          addHabitacion(response.data[0]);
+        }
       }
 
-      await loadHabitaciones();
       handleCloseModal();
     } catch (error) {
-      onError('Error al guardar la habitación');
-    } finally {
-      onLoading(false);
+      console.error('Error al guardar la habitación:', error);
     }
   };
 
   const handleDelete = async (id: number) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta habitación?')) {
       try {
-        onLoading(true);
-        onError(null);
         await habitacionService.delete(id);
-        await loadHabitaciones();
+        removeHabitacion(id);
       } catch (error) {
-        onError('Error al eliminar la habitación');
-      } finally {
-        onLoading(false);
+        console.error('Error al eliminar la habitación:', error);
       }
     }
   };
 
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5>Lista de Habitaciones</h5>
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <Button variant="success" onClick={() => handleShowModal()} className="me-2">
+          <h5 className="mb-1" style={{ color: '#495057', fontWeight: 'bold' }}>Lista de Habitaciones</h5>
+          <p className="text-muted mb-0" style={{ fontSize: '14px' }}>Gestiona las habitaciones del hotel</p>
+        </div>
+        <div className="d-flex gap-2">
+          <Button 
+            variant="success" 
+            onClick={() => handleShowModal()} 
+            style={{ 
+              borderRadius: '25px', 
+              padding: '8px 20px',
+              fontWeight: '500',
+              boxShadow: '0 2px 4px rgba(40, 167, 69, 0.3)'
+            }}
+          >
             ➕ Nueva Habitación
           </Button>
-          <Button variant="primary" onClick={loadHabitaciones}>
+          <Button 
+            variant="outline-primary" 
+            onClick={() => window.location.reload()}
+            style={{ 
+              borderRadius: '25px', 
+              padding: '8px 20px',
+              fontWeight: '500'
+            }}
+          >
             🔄 Actualizar
           </Button>
         </div>
       </div>
 
       {habitaciones.length === 0 ? (
-        <Alert variant="info">
-          No hay habitaciones registradas.
-        </Alert>
+        <div 
+          className="text-center py-5"
+          style={{
+            backgroundColor: 'white',
+            borderRadius: '15px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            border: '2px dashed #dee2e6'
+          }}
+        >
+          <div style={{ fontSize: '48px', marginBottom: '1rem' }}>🏠</div>
+          <h5 style={{ color: '#6c757d', marginBottom: '0.5rem' }}>No hay habitaciones registradas</h5>
+          <p className="text-muted">Comienza agregando tu primera habitación</p>
+        </div>
       ) : (
-        <Table striped bordered hover responsive>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Número</th>
-              <th>Tipo</th>
-              <th>Precio/Noche</th>
-              <th>Estado</th>
-              <th>Disponible</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {habitaciones.map((habitacion) => (
-              <tr key={habitacion.id}>
-                <td>{habitacion.id}</td>
-                <td>
-                  <strong>#{habitacion.numero}</strong>
-                </td>
-                <td>{habitacion.tipo}</td>
-                <td>{formatCurrency(habitacion.precioPorNoche)}</td>
-                <td>{getEstadoBadge(habitacion.estado, habitacion.disponible)}</td>
-                <td>
-                  {habitacion.disponible ? (
-                    <Badge bg="success">Sí</Badge>
-                  ) : (
-                    <Badge bg="danger">No</Badge>
-                  )}
-                </td>
-                <td>
-                  <Button 
-                    variant="outline-primary" 
-                    size="sm" 
-                    onClick={() => handleShowModal(habitacion)}
-                    className="me-1"
-                  >
-                    ✏️
-                  </Button>
-                  <Button 
-                    variant="outline-danger" 
-                    size="sm" 
-                    onClick={() => handleDelete(habitacion.id)}
-                  >
-                    🗑️
-                  </Button>
-                </td>
+        <div 
+          style={{
+            backgroundColor: 'white',
+            borderRadius: '15px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            overflow: 'hidden'
+          }}
+        >
+          <Table hover responsive className="mb-0">
+            <thead style={{ backgroundColor: '#f8f9fa' }}>
+              <tr>
+                <th style={{ border: 'none', padding: '1rem', color: '#495057', fontWeight: '600' }}>ID</th>
+                <th style={{ border: 'none', padding: '1rem', color: '#495057', fontWeight: '600' }}>Número</th>
+                <th style={{ border: 'none', padding: '1rem', color: '#495057', fontWeight: '600' }}>Tipo</th>
+                <th style={{ border: 'none', padding: '1rem', color: '#495057', fontWeight: '600' }}>Precio/Noche</th>
+                <th style={{ border: 'none', padding: '1rem', color: '#495057', fontWeight: '600' }}>Estado</th>
+                <th style={{ border: 'none', padding: '1rem', color: '#495057', fontWeight: '600' }}>Disponible</th>
+                <th style={{ border: 'none', padding: '1rem', color: '#495057', fontWeight: '600' }}>Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {habitaciones.map((habitacion, index) => (
+                <tr 
+                  key={habitacion.id}
+                  style={{ 
+                    backgroundColor: index % 2 === 0 ? 'white' : '#f8f9fa',
+                    borderBottom: '1px solid #f1f3f4'
+                  }}
+                >
+                  <td style={{ border: 'none', padding: '1rem', color: '#6c757d' }}>{habitacion.id}</td>
+                  <td style={{ border: 'none', padding: '1rem' }}>
+                    <strong style={{ color: '#495057' }}>#{habitacion.numero}</strong>
+                  </td>
+                  <td style={{ border: 'none', padding: '1rem', color: '#6c757d' }}>{habitacion.tipo}</td>
+                  <td style={{ border: 'none', padding: '1rem', color: '#6c757d', fontWeight: '500' }}>{formatCurrency(habitacion.precioPorNoche)}</td>
+                  <td style={{ border: 'none', padding: '1rem' }}>{getEstadoBadge(habitacion.estado, habitacion.disponible)}</td>
+                  <td style={{ border: 'none', padding: '1rem' }}>
+                    {habitacion.disponible ? (
+                      <Badge 
+                        style={{ 
+                          backgroundColor: '#28a745', 
+                          borderRadius: '15px',
+                          padding: '4px 12px',
+                          fontSize: '12px'
+                        }}
+                      >
+                        Sí
+                      </Badge>
+                    ) : (
+                      <Badge 
+                        style={{ 
+                          backgroundColor: '#dc3545', 
+                          borderRadius: '15px',
+                          padding: '4px 12px',
+                          fontSize: '12px'
+                        }}
+                      >
+                        No
+                      </Badge>
+                    )}
+                  </td>
+                  <td style={{ border: 'none', padding: '1rem' }}>
+                    <div className="d-flex gap-1">
+                      <Button 
+                        variant="outline-primary" 
+                        size="sm" 
+                        onClick={() => handleShowModal(habitacion)}
+                        style={{ 
+                          borderRadius: '20px', 
+                          padding: '6px 12px',
+                          border: '1px solid #6f42c1',
+                          color: '#6f42c1'
+                        }}
+                      >
+                        ✏️
+                      </Button>
+                      <Button 
+                        variant="outline-danger" 
+                        size="sm" 
+                        onClick={() => handleDelete(habitacion.id)}
+                        style={{ 
+                          borderRadius: '20px', 
+                          padding: '6px 12px',
+                          border: '1px solid #dc3545',
+                          color: '#dc3545'
+                        }}
+                      >
+                        🗑️
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </div>
       )}
 
-      <Modal show={showModal} onHide={handleCloseModal} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {editingHabitacion ? 'Editar Habitación' : 'Nueva Habitación'}
+      <Modal 
+        show={showModal} 
+        onHide={handleCloseModal} 
+        size="lg"
+        style={{ zIndex: 1050 }}
+      >
+        <Modal.Header 
+          closeButton
+          style={{
+            background: 'linear-gradient(135deg, #6f42c1 0%, #20c997 100%)',
+            color: 'white',
+            border: 'none'
+          }}
+        >
+          <Modal.Title style={{ fontWeight: 'bold' }}>
+            {editingHabitacion ? '✏️ Editar Habitación' : '➕ Nueva Habitación'}
           </Modal.Title>
         </Modal.Header>
         <Form onSubmit={handleSubmit}>
@@ -222,10 +288,11 @@ const HabitacionList: React.FC<HabitacionListProps> = ({ onError, onLoading }) =
                 <Form.Group className="mb-3">
                   <Form.Label>Número de Habitación</Form.Label>
                   <Form.Control
-                    type="text"
+                    type="number"
                     name="numero"
                     value={formData.numero}
                     onChange={handleInputChange}
+                    min="1"
                     required
                   />
                 </Form.Group>
@@ -289,11 +356,30 @@ const HabitacionList: React.FC<HabitacionListProps> = ({ onError, onLoading }) =
               </Col>
             </Row>
           </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleCloseModal}>
+          <Modal.Footer style={{ backgroundColor: '#f8f9fa', border: 'none' }}>
+            <Button 
+              variant="outline-secondary" 
+              onClick={handleCloseModal}
+              style={{ 
+                borderRadius: '25px', 
+                padding: '8px 20px',
+                fontWeight: '500'
+              }}
+            >
               Cancelar
             </Button>
-            <Button variant="primary" type="submit">
+            <Button 
+              variant="primary" 
+              type="submit"
+              style={{ 
+                borderRadius: '25px', 
+                padding: '8px 20px',
+                fontWeight: '500',
+                background: 'linear-gradient(135deg, #6f42c1 0%, #20c997 100%)',
+                border: 'none',
+                boxShadow: '0 2px 4px rgba(111, 66, 193, 0.3)'
+              }}
+            >
               {editingHabitacion ? 'Actualizar' : 'Crear'}
             </Button>
           </Modal.Footer>

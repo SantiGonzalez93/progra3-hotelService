@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
 import belgrano.finalProgra3.dto.ResponseDto;
+import belgrano.finalProgra3.dto.ReservaRequestDto;
 import belgrano.finalProgra3.entity.Reserva;
 import belgrano.finalProgra3.service.IReservaService;
 
@@ -40,21 +42,12 @@ public class ReservaController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseDto<Reserva>> crearNuevaReserva(@RequestBody Reserva reserva) {
-
-        if (reserva.getId() == null) {
-
-            return new ResponseEntity<>(new ResponseDto<>(true, "Reserva creada con éxito", service.save(reserva)), HttpStatus.OK);
-
-        } else {
-            if (service.exists(reserva.getId())) {
-
-                return new ResponseEntity<>(new ResponseDto<>(false, "La reserva con id: " + reserva.getId().toString() + " ya existe", service.getById(reserva.getId())), HttpStatus.BAD_REQUEST);
-
-            } else {
-
-                return new ResponseEntity<>(new ResponseDto<>(false, "Petición errónea, enviar nuevamente sin ID"), HttpStatus.BAD_REQUEST);
-            }
+    public ResponseEntity<ResponseDto<Reserva>> crearNuevaReserva(@Valid @RequestBody ReservaRequestDto reservaRequest) {
+        try {
+            Reserva reserva = service.createFromRequest(reservaRequest);
+            return new ResponseEntity<>(new ResponseDto<>(true, "Reserva creada con éxito", reserva), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ResponseDto<>(false, "Error al crear la reserva: " + e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }
 

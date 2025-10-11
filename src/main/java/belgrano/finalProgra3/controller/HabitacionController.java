@@ -12,12 +12,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
 import belgrano.finalProgra3.dto.ResponseDto;
 import belgrano.finalProgra3.entity.Habitacion;
 import belgrano.finalProgra3.service.IHabitacionService;
 
 @RestController
-@RequestMapping("/habitaciones")
+@RequestMapping("/habitacion")
 public class HabitacionController {
 
     @Autowired
@@ -49,7 +50,7 @@ public class HabitacionController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseDto<Habitacion>> crearHabitacion(@RequestBody Habitacion habitacion) {
+    public ResponseEntity<ResponseDto<Habitacion>> crearHabitacion(@Valid @RequestBody Habitacion habitacion) {
 
         if (habitacion.getId() == null) {
 
@@ -68,7 +69,7 @@ public class HabitacionController {
     }
 
     @PutMapping
-    public ResponseEntity<ResponseDto<Habitacion>> modificaHabitacion(@RequestBody Habitacion habitacion) {
+    public ResponseEntity<ResponseDto<Habitacion>> modificaHabitacion(@Valid @RequestBody Habitacion habitacion) {
 
         if (habitacion.getId() != null) {
 
@@ -87,11 +88,11 @@ public class HabitacionController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseDto<Habitacion>> borrarHabitacion(@PathVariable("id") Long id) {
+    public ResponseEntity<ResponseDto<Habitacion>> delete(@PathVariable("id") Long id) {
 
         if (service.exists(id)) {
 
-            service.delete(id);
+            service.deleteById(id);
             return new ResponseEntity<>(new ResponseDto<>(true, "Habitacion con id: " + id.toString() + " ha sido eliminada"), HttpStatus.OK);
 
         } else {

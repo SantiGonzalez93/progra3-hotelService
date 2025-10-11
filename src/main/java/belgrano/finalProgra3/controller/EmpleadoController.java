@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
 import belgrano.finalProgra3.dto.ResponseDto;
 import belgrano.finalProgra3.entity.Empleado;
 import belgrano.finalProgra3.service.IEmpleadoService;
@@ -23,7 +24,7 @@ public class EmpleadoController {
     @Autowired
     private IEmpleadoService service;
 
-    @GetMapping("s")
+    @GetMapping
     public ResponseEntity<ResponseDto<List<Empleado>>> buscarTodosLosEmpleados() {
 
         return !service.getAll().isEmpty()
@@ -40,7 +41,7 @@ public class EmpleadoController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseDto<Empleado>> crearNuevoEmpleado(@RequestBody Empleado empleado) {
+    public ResponseEntity<ResponseDto<Empleado>> crearNuevoEmpleado(@Valid @RequestBody Empleado empleado) {
 
         if (empleado.getId() == null) {
 
@@ -59,7 +60,7 @@ public class EmpleadoController {
     }
 
     @PutMapping
-    public ResponseEntity<ResponseDto<Empleado>> actualizarEmpleado(@RequestBody Empleado empleado) {
+    public ResponseEntity<ResponseDto<Empleado>> actualizarEmpleado(@Valid @RequestBody Empleado empleado) {
 
         if (empleado.getId() != null) {
 
@@ -78,11 +79,11 @@ public class EmpleadoController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseDto<Empleado>> eliminar(@PathVariable("id") Long id) {
+    public ResponseEntity<ResponseDto<Empleado>> delete(@PathVariable("id") Long id) {
 
         if (service.exists(id)) {
 
-            service.delete(id);
+            service.deleteById(id);
             return new ResponseEntity<>(new ResponseDto<>(true, "Empleado con id: " + id.toString() + " ha sido eliminado"), HttpStatus.OK);
 
         } else {

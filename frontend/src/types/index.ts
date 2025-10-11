@@ -10,14 +10,14 @@ export interface Empleado {
   id: number;
   nombre: string;
   cargo: string;
-  numeroIdentificacion: string;
+  numeroIdentificacion: number;
   salario: number;
   fechaContratacion: string;
 }
 
 export interface Habitacion {
   id: number;
-  numero: string;
+  numero: number;
   tipo: string;
   precioPorNoche: number;
   estado: string;
@@ -36,9 +36,20 @@ export interface Reserva {
   id: number;
   fechaInicio: string;
   fechaFin: string;
-  habitacion: number;
-  clienteId: string;
+  numeroNoches: number;
+  precioTotal: number;
+  habitacion: Habitacion;
+  cliente: Cliente;
+  servicios: Servicio[];
   estado: 'CONFIRMADA' | 'PENDIENTE' | 'CANCELADA';
+}
+
+export interface ReservaRequest {
+  fechaInicio: string;
+  fechaFin: string;
+  habitacionId: number;
+  clienteId: number;
+  serviciosIds: number[];
 }
 
 export interface Factura {

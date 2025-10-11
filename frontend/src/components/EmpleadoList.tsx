@@ -1,41 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Table, Badge, Alert, Button, Modal, Form, Row, Col } from 'react-bootstrap';
 import { Empleado } from '../types';
 import { empleadoService } from '../services/api';
+import { useAppContext } from '../context/AppContext';
 
-interface EmpleadoListProps {
-  onError: (error: string | null) => void;
-  onLoading: (loading: boolean) => void;
-}
-
-const EmpleadoList: React.FC<EmpleadoListProps> = ({ onError, onLoading }) => {
-  const [empleados, setEmpleados] = useState<Empleado[]>([]);
+const EmpleadoList: React.FC = () => {
+  const { empleados, addEmpleado, updateEmpleado, removeEmpleado } = useAppContext();
   const [showModal, setShowModal] = useState(false);
   const [editingEmpleado, setEditingEmpleado] = useState<Empleado | null>(null);
   const [formData, setFormData] = useState({
     nombre: '',
     cargo: '',
-    numeroIdentificacion: '',
+    numeroIdentificacion: 0,
     salario: 0,
     fechaContratacion: ''
   });
 
-  const loadEmpleados = async () => {
-    try {
-      onLoading(true);
-      onError(null);
-      const response = await empleadoService.getAll();
-      setEmpleados(response.data);
-    } catch (error) {
-      onError('Error al cargar los empleados. Asegúrate de que el backend esté ejecutándose en http://localhost:7080');
-    } finally {
-      onLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadEmpleados();
-  }, []);
+  // Ya no necesitamos cargar empleados, vienen del contexto
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-AR', {
@@ -63,7 +44,7 @@ const EmpleadoList: React.FC<EmpleadoListProps> = ({ onError, onLoading }) => {
       setFormData({
         nombre: '',
         cargo: '',
-        numeroIdentificacion: '',
+        numeroIdentificacion: 0,
         salario: 0,
         fechaContratacion: ''
       });
@@ -77,7 +58,7 @@ const EmpleadoList: React.FC<EmpleadoListProps> = ({ onError, onLoading }) => {
     setFormData({
       nombre: '',
       cargo: '',
-      numeroIdentificacion: '',
+      numeroIdentificacion: 0,
       salario: 0,
       fechaContratacion: ''
     });
@@ -87,122 +68,197 @@ const EmpleadoList: React.FC<EmpleadoListProps> = ({ onError, onLoading }) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'salario' ? parseFloat(value) || 0 : value
+      [name]: name === 'salario' || name === 'numeroIdentificacion' ? parseFloat(value) || 0 : value
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      onLoading(true);
-      onError(null);
-
       const empleadoData = {
         ...formData,
         fechaContratacion: new Date(formData.fechaContratacion).toISOString()
       };
 
       if (editingEmpleado) {
-        await empleadoService.update({ ...empleadoData, id: editingEmpleado.id });
+        const empleadoActualizado = { ...empleadoData, id: editingEmpleado.id };
+        await empleadoService.update(empleadoActualizado);
+        updateEmpleado(empleadoActualizado);
       } else {
-        await empleadoService.create(empleadoData);
+        const response = await empleadoService.create(empleadoData);
+        if (response.estado) {
+          // El backend devuelve un array, tomamos el primer elemento
+          addEmpleado(response.data[0]);
+        }
       }
 
-      await loadEmpleados();
       handleCloseModal();
     } catch (error) {
-      onError('Error al guardar el empleado');
-    } finally {
-      onLoading(false);
+      console.error('Error al guardar el empleado:', error);
     }
   };
 
   const handleDelete = async (id: number) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este empleado?')) {
       try {
-        onLoading(true);
-        onError(null);
         await empleadoService.delete(id);
-        await loadEmpleados();
+        removeEmpleado(id);
       } catch (error) {
-        onError('Error al eliminar el empleado');
-      } finally {
-        onLoading(false);
+        console.error('Error al eliminar el empleado:', error);
       }
     }
   };
 
   return (
     <div>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5>Lista de Empleados</h5>
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <Button variant="success" onClick={() => handleShowModal()} className="me-2">
+          <h5 className="mb-1" style={{ color: '#495057', fontWeight: 'bold' }}>Lista de Empleados</h5>
+          <p className="text-muted mb-0" style={{ fontSize: '14px' }}>Gestiona el personal del hotel</p>
+        </div>
+        <div className="d-flex gap-2">
+          <Button 
+            variant="success" 
+            onClick={() => handleShowModal()} 
+            style={{ 
+              borderRadius: '25px', 
+              padding: '8px 20px',
+              fontWeight: '500',
+              boxShadow: '0 2px 4px rgba(40, 167, 69, 0.3)'
+            }}
+          >
             ➕ Nuevo Empleado
           </Button>
-          <Button variant="primary" onClick={loadEmpleados}>
+          <Button 
+            variant="outline-primary" 
+            onClick={() => window.location.reload()}
+            style={{ 
+              borderRadius: '25px', 
+              padding: '8px 20px',
+              fontWeight: '500'
+            }}
+          >
             🔄 Actualizar
           </Button>
         </div>
       </div>
 
       {empleados.length === 0 ? (
-        <Alert variant="info">
-          No hay empleados registrados.
-        </Alert>
+        <div 
+          className="text-center py-5"
+          style={{
+            backgroundColor: 'white',
+            borderRadius: '15px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            border: '2px dashed #dee2e6'
+          }}
+        >
+          <div style={{ fontSize: '48px', marginBottom: '1rem' }}>👨‍💼</div>
+          <h5 style={{ color: '#6c757d', marginBottom: '0.5rem' }}>No hay empleados registrados</h5>
+          <p className="text-muted">Comienza agregando tu primer empleado</p>
+        </div>
       ) : (
-        <Table striped bordered hover responsive>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Cargo</th>
-              <th>N° Identificación</th>
-              <th>Salario</th>
-              <th>Fecha Contratación</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {empleados.map((empleado) => (
-              <tr key={empleado.id}>
-                <td>{empleado.id}</td>
-                <td>
-                  <strong>{empleado.nombre}</strong>
-                </td>
-                <td>
-                  <Badge bg="info">{empleado.cargo}</Badge>
-                </td>
-                <td>{empleado.numeroIdentificacion}</td>
-                <td>{formatCurrency(empleado.salario)}</td>
-                <td>{formatDate(empleado.fechaContratacion)}</td>
-                <td>
-                  <Button 
-                    variant="outline-primary" 
-                    size="sm" 
-                    onClick={() => handleShowModal(empleado)}
-                    className="me-1"
-                  >
-                    ✏️
-                  </Button>
-                  <Button 
-                    variant="outline-danger" 
-                    size="sm" 
-                    onClick={() => handleDelete(empleado.id)}
-                  >
-                    🗑️
-                  </Button>
-                </td>
+        <div 
+          style={{
+            backgroundColor: 'white',
+            borderRadius: '15px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            overflow: 'hidden'
+          }}
+        >
+          <Table hover responsive className="mb-0">
+            <thead style={{ backgroundColor: '#f8f9fa' }}>
+              <tr>
+                <th style={{ border: 'none', padding: '1rem', color: '#495057', fontWeight: '600' }}>ID</th>
+                <th style={{ border: 'none', padding: '1rem', color: '#495057', fontWeight: '600' }}>Nombre</th>
+                <th style={{ border: 'none', padding: '1rem', color: '#495057', fontWeight: '600' }}>Cargo</th>
+                <th style={{ border: 'none', padding: '1rem', color: '#495057', fontWeight: '600' }}>N° Identificación</th>
+                <th style={{ border: 'none', padding: '1rem', color: '#495057', fontWeight: '600' }}>Salario</th>
+                <th style={{ border: 'none', padding: '1rem', color: '#495057', fontWeight: '600' }}>Fecha Contratación</th>
+                <th style={{ border: 'none', padding: '1rem', color: '#495057', fontWeight: '600' }}>Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {empleados.map((empleado, index) => (
+                <tr 
+                  key={empleado.id}
+                  style={{ 
+                    backgroundColor: index % 2 === 0 ? 'white' : '#f8f9fa',
+                    borderBottom: '1px solid #f1f3f4'
+                  }}
+                >
+                  <td style={{ border: 'none', padding: '1rem', color: '#6c757d' }}>{empleado.id}</td>
+                  <td style={{ border: 'none', padding: '1rem' }}>
+                    <strong style={{ color: '#495057' }}>{empleado.nombre}</strong>
+                  </td>
+                  <td style={{ border: 'none', padding: '1rem' }}>
+                    <Badge 
+                      style={{ 
+                        backgroundColor: '#6f42c1', 
+                        borderRadius: '15px',
+                        padding: '4px 12px',
+                        fontSize: '12px'
+                      }}
+                    >
+                      {empleado.cargo}
+                    </Badge>
+                  </td>
+                  <td style={{ border: 'none', padding: '1rem', color: '#6c757d' }}>{empleado.numeroIdentificacion}</td>
+                  <td style={{ border: 'none', padding: '1rem', color: '#6c757d', fontWeight: '500' }}>{formatCurrency(empleado.salario)}</td>
+                  <td style={{ border: 'none', padding: '1rem', color: '#6c757d' }}>{formatDate(empleado.fechaContratacion)}</td>
+                  <td style={{ border: 'none', padding: '1rem' }}>
+                    <div className="d-flex gap-1">
+                      <Button 
+                        variant="outline-primary" 
+                        size="sm" 
+                        onClick={() => handleShowModal(empleado)}
+                        style={{ 
+                          borderRadius: '20px', 
+                          padding: '6px 12px',
+                          border: '1px solid #6f42c1',
+                          color: '#6f42c1'
+                        }}
+                      >
+                        ✏️
+                      </Button>
+                      <Button 
+                        variant="outline-danger" 
+                        size="sm" 
+                        onClick={() => handleDelete(empleado.id)}
+                        style={{ 
+                          borderRadius: '20px', 
+                          padding: '6px 12px',
+                          border: '1px solid #dc3545',
+                          color: '#dc3545'
+                        }}
+                      >
+                        🗑️
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </div>
       )}
 
-      <Modal show={showModal} onHide={handleCloseModal} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {editingEmpleado ? 'Editar Empleado' : 'Nuevo Empleado'}
+      <Modal 
+        show={showModal} 
+        onHide={handleCloseModal} 
+        size="lg"
+        style={{ zIndex: 1050 }}
+      >
+        <Modal.Header 
+          closeButton
+          style={{
+            background: 'linear-gradient(135deg, #6f42c1 0%, #20c997 100%)',
+            color: 'white',
+            border: 'none'
+          }}
+        >
+          <Modal.Title style={{ fontWeight: 'bold' }}>
+            {editingEmpleado ? '✏️ Editar Empleado' : '➕ Nuevo Empleado'}
           </Modal.Title>
         </Modal.Header>
         <Form onSubmit={handleSubmit}>
@@ -238,10 +294,11 @@ const EmpleadoList: React.FC<EmpleadoListProps> = ({ onError, onLoading }) => {
                 <Form.Group className="mb-3">
                   <Form.Label>Número de Identificación</Form.Label>
                   <Form.Control
-                    type="text"
+                    type="number"
                     name="numeroIdentificacion"
                     value={formData.numeroIdentificacion}
                     onChange={handleInputChange}
+                    min="0"
                     required
                   />
                 </Form.Group>
@@ -276,11 +333,30 @@ const EmpleadoList: React.FC<EmpleadoListProps> = ({ onError, onLoading }) => {
               </Col>
             </Row>
           </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleCloseModal}>
+          <Modal.Footer style={{ backgroundColor: '#f8f9fa', border: 'none' }}>
+            <Button 
+              variant="outline-secondary" 
+              onClick={handleCloseModal}
+              style={{ 
+                borderRadius: '25px', 
+                padding: '8px 20px',
+                fontWeight: '500'
+              }}
+            >
               Cancelar
             </Button>
-            <Button variant="primary" type="submit">
+            <Button 
+              variant="primary" 
+              type="submit"
+              style={{ 
+                borderRadius: '25px', 
+                padding: '8px 20px',
+                fontWeight: '500',
+                background: 'linear-gradient(135deg, #6f42c1 0%, #20c997 100%)',
+                border: 'none',
+                boxShadow: '0 2px 4px rgba(111, 66, 193, 0.3)'
+              }}
+            >
               {editingEmpleado ? 'Actualizar' : 'Crear'}
             </Button>
           </Modal.Footer>

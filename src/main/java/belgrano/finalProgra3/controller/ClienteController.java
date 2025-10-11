@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
 import belgrano.finalProgra3.dto.ResponseDto;
 import belgrano.finalProgra3.entity.Cliente;
 import belgrano.finalProgra3.service.IClienteService;
@@ -40,7 +41,7 @@ public class ClienteController {
     }
 
     @PostMapping
-    public ResponseEntity<ResponseDto<Cliente>> crearNuevoCliente(@RequestBody Cliente cliente) {
+    public ResponseEntity<ResponseDto<Cliente>> crearNuevoCliente(@Valid @RequestBody Cliente cliente) {
 
         if (cliente.getId() == null) {
 
@@ -59,7 +60,7 @@ public class ClienteController {
     }
 
     @PutMapping
-    public ResponseEntity<ResponseDto<Cliente>> actualizarCliente(@RequestBody Cliente cliente) {
+    public ResponseEntity<ResponseDto<Cliente>> actualizarCliente(@Valid @RequestBody Cliente cliente) {
 
         if (cliente.getId() != null) {
 
@@ -82,7 +83,7 @@ public class ClienteController {
 
         if (service.exists(id)) {
 
-            service.delete(id);
+            service.deleteById(id);
             return new ResponseEntity<>(new ResponseDto<>(true, "Cliente con id: " + id.toString() + " ha sido eliminado"), HttpStatus.OK);
 
         } else {

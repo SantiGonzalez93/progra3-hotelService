@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Cliente, Empleado, Habitacion, Servicio, ApiResponse } from '../types';
+import { Cliente, Empleado, Habitacion, Servicio, Reserva, ReservaRequest, ApiResponse } from '../types';
 
 const API_BASE_URL = 'http://localhost:7080';
 
@@ -19,7 +19,7 @@ export const clienteService = {
     const response = await api.get(`/cliente/${id}`);
     return response.data;
   },
-  create: async (cliente: Omit<Cliente, 'id'>): Promise<ApiResponse<Cliente>> => {
+  create: async (cliente: Omit<Cliente, 'id'>): Promise<{estado: boolean, message: string[], data: Cliente}> => {
     const response = await api.post('/cliente', cliente);
     return response.data;
   },
@@ -35,7 +35,7 @@ export const clienteService = {
 
 export const empleadoService = {
   getAll: async (): Promise<ApiResponse<Empleado>> => {
-    const response = await api.get('/empleados');
+    const response = await api.get('/empleado');
     return response.data;
   },
   getById: async (id: number): Promise<ApiResponse<Empleado>> => {
@@ -58,46 +58,69 @@ export const empleadoService = {
 
 export const habitacionService = {
   getAll: async (): Promise<ApiResponse<Habitacion>> => {
-    const response = await api.get('/habitaciones');
+    const response = await api.get('/habitacion');
     return response.data;
   },
   getById: async (id: number): Promise<ApiResponse<Habitacion>> => {
-    const response = await api.get(`/habitaciones/${id}`);
+    const response = await api.get(`/habitacion/${id}`);
     return response.data;
   },
   create: async (habitacion: Omit<Habitacion, 'id'>): Promise<ApiResponse<Habitacion>> => {
-    const response = await api.post('/habitaciones', habitacion);
+    const response = await api.post('/habitacion', habitacion);
     return response.data;
   },
   update: async (habitacion: Habitacion): Promise<ApiResponse<Habitacion>> => {
-    const response = await api.put('/habitaciones', habitacion);
+    const response = await api.put('/habitacion', habitacion);
     return response.data;
   },
   delete: async (id: number): Promise<ApiResponse<any>> => {
-    const response = await api.delete(`/habitaciones/${id}`);
+    const response = await api.delete(`/habitacion/${id}`);
     return response.data;
   },
 };
 
 export const servicioService = {
   getAll: async (): Promise<ApiResponse<Servicio>> => {
-    const response = await api.get('/servicios');
+    const response = await api.get('/servicio');
     return response.data;
   },
   getById: async (id: number): Promise<ApiResponse<Servicio>> => {
-    const response = await api.get(`/servicios/${id}`);
+    const response = await api.get(`/servicio/${id}`);
     return response.data;
   },
   create: async (servicio: Omit<Servicio, 'id'>): Promise<ApiResponse<Servicio>> => {
-    const response = await api.post('/servicios', servicio);
+    const response = await api.post('/servicio', servicio);
     return response.data;
   },
   update: async (servicio: Servicio): Promise<ApiResponse<Servicio>> => {
-    const response = await api.put('/servicios', servicio);
+    const response = await api.put('/servicio', servicio);
     return response.data;
   },
   delete: async (id: number): Promise<ApiResponse<any>> => {
-    const response = await api.delete(`/servicios/${id}`);
+    const response = await api.delete(`/servicio/${id}`);
+    return response.data;
+  },
+};
+
+export const reservaService = {
+  getAll: async (): Promise<ApiResponse<Reserva>> => {
+    const response = await api.get('/reserva');
+    return response.data;
+  },
+  getById: async (id: number): Promise<ApiResponse<Reserva>> => {
+    const response = await api.get(`/reserva/${id}`);
+    return response.data;
+  },
+  create: async (reserva: ReservaRequest): Promise<ApiResponse<Reserva>> => {
+    const response = await api.post('/reserva', reserva);
+    return response.data;
+  },
+  update: async (reserva: Reserva): Promise<ApiResponse<Reserva>> => {
+    const response = await api.put('/reserva', reserva);
+    return response.data;
+  },
+  delete: async (id: number): Promise<ApiResponse<any>> => {
+    const response = await api.delete(`/reserva/${id}`);
     return response.data;
   },
 };

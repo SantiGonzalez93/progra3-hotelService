@@ -9,14 +9,10 @@ import belgrano.finalProgra3.entity.Servicio;
 @Service
 public interface IServicioService {
 
-	public abstract List<Servicio> getAll();
-
-	public abstract Servicio getById(Long id);
-
-	public abstract Servicio save(Servicio servicio);
-
-	public abstract void deleteById(Long id);
-
-	public abstract boolean exists(Long id);
+	List<Servicio> getAll();
+	Servicio getById(Long id);
+	Servicio save(Servicio servicio);
+	void deleteById(Long id);
+	boolean exists(Long id);
 
 }

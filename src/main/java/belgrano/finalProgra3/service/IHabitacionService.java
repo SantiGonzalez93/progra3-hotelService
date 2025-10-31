@@ -13,6 +13,7 @@ public interface IHabitacionService {
   Habitacion getById(Long id);
   Habitacion save(Habitacion habitacion);
   void delete(Long id);
+  void deleteById(Long id);
   boolean exists(Long id);
   List<Habitacion> findByDisponible(boolean disponible);
 	

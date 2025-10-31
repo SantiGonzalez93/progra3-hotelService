@@ -34,6 +34,11 @@ public class EmpleadoServiceImpl implements IEmpleadoService {
 		repo.deleteById(id);
 	}
 
+	@Override
+	public void deleteById(Long id) {
+		repo.deleteById(id);
+	}
+
 	@Override 
 	public boolean exists(Long id) {
 		if (id != null) {

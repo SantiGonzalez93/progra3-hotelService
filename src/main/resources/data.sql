@@ -31,12 +31,12 @@ INSERT INTO servicio (nombre, descripcion, precio, disponibilidad) VALUES
 ('Room Service 24h', 'Servicio de comidas y bebidas a la habitación', 2000.00, false);
 
 -- Insertar Reservas (5 registros)
-INSERT INTO reserva (fecha_inicio, fecha_fin, habitacion, cliente_id, estado) VALUES
-('2024-12-20', '2024-12-25', 1, '1', 'CONFIRMADA'),
-('2024-12-15', '2024-12-18', 2, '2', 'PENDIENTE'),
-('2024-11-28', '2024-11-30', 4, '3', 'CONFIRMADA'),
-('2024-12-22', '2024-12-27', 5, '4', 'CANCELADA'),
-('2025-01-02', '2025-01-07', 2, '5', 'PENDIENTE');
+INSERT INTO reserva (fecha_inicio, fecha_fin, numero_noches, precio_total, habitacion, cliente_id, estado) VALUES
+('2024-12-20', '2024-12-25', 5, 42502.50, 1, 1, 'CONFIRMADA'),
+('2024-12-15', '2024-12-18', 3, 36000.00, 2, 2, 'PENDIENTE'),
+('2024-11-28', '2024-11-30', 2, 17000.00, 4, 3, 'CONFIRMADA'),
+('2024-12-22', '2024-12-27', 5, 75000.00, 5, 4, 'CANCELADA'),
+('2025-01-02', '2025-01-07', 5, 60000.00, 2, 5, 'PENDIENTE');
 
 -- Insertar Facturas (5 registros)
 INSERT INTO factura (reserva_id, total, detalles) VALUES

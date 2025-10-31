@@ -1,8 +1,11 @@
 package belgrano.finalProgra3.dto;
 
+import lombok.Data;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Data
 public class ResponseDto<T> {
 
 	private boolean estado;
@@ -10,10 +13,7 @@ public class ResponseDto<T> {
 	private T data;
 
 	public ResponseDto() {
-		
 	}
-	
-	
 	public ResponseDto(boolean estado, List<String> message, T data) {
 		super();
 		this.estado = estado;
@@ -34,30 +34,6 @@ public class ResponseDto<T> {
 		this.estado = estado;
 		this.message = new ArrayList<>();
 		this.message.add(message);
-	}
-
-	public boolean isEstado() {
-		return estado;
-	}
-
-	public void setEstado(boolean estado) {
-		this.estado = estado;
-	}
-
-	public List<String> getMessage() {
-		return message;
-	}
-
-	public void setMessage(List<String> message) {
-		this.message = message;
-	}
-
-	public T getData() {
-		return data;
-	}
-
-	public void setData(T data) {
-		this.data = data;
 	}
 
 }

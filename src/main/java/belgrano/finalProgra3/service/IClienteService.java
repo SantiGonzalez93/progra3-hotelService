@@ -10,10 +10,11 @@ import belgrano.finalProgra3.entity.Cliente;
 
 public interface IClienteService {
 	
-	public abstract List <Cliente> getAll(); 
-	public abstract Cliente getById(Long id);
-	public abstract Cliente save(Cliente cliente);
-	public abstract void delete(Long id);
-	public abstract boolean exists (Long id);
+	List <Cliente> getAll();
+	Cliente getById(Long id);
+	Cliente save(Cliente cliente);
+	void delete(Long id);
+	void deleteById(Long id);
+	boolean exists (Long id);
 
 }

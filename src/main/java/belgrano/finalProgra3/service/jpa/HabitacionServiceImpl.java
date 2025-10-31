@@ -37,6 +37,12 @@ public class HabitacionServiceImpl implements IHabitacionService {
 	}
 
 	@Override
+	public void deleteById(Long id) {
+		repositoryHabitacion.deleteById(id);
+		
+	}
+
+	@Override
 	public boolean exists(Long id) {
 		if (id != null) {
 			return repositoryHabitacion.existsById(id);

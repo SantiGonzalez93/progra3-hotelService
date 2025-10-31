@@ -12,12 +12,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
 import belgrano.finalProgra3.dto.ResponseDto;
 import belgrano.finalProgra3.entity.Servicio;
 import belgrano.finalProgra3.service.IServicioService;
 
 @RestController
-@RequestMapping("/servicios")
+@RequestMapping("/servicio")
 public class ServicioController {
 
 	@Autowired
@@ -43,7 +44,7 @@ public class ServicioController {
 	}
 
 	@PostMapping
-	public ResponseEntity<ResponseDto<Servicio>> crearNuevoServicio(@RequestBody Servicio servicio) {
+	public ResponseEntity<ResponseDto<Servicio>> crearNuevoServicio(@Valid @RequestBody Servicio servicio) {
 
 		if (servicio.getId() == null) {
 			
@@ -63,7 +64,7 @@ public class ServicioController {
 	}
 
 	@PutMapping
-	public ResponseEntity<ResponseDto<Servicio>> modificaServicio(@RequestBody Servicio servicio) {
+	public ResponseEntity<ResponseDto<Servicio>> modificaServicio(@Valid @RequestBody Servicio servicio) {
 
 		if (servicio.getId() != null) {
 			
@@ -84,7 +85,7 @@ public class ServicioController {
 	}
 
 	@DeleteMapping("/{id}")
-	public ResponseEntity<ResponseDto<Servicio>> borrarServicio(@PathVariable("id") Long id) {
+	public ResponseEntity<ResponseDto<Servicio>> delete(@PathVariable("id") Long id) {
 
 		if (service.exists(id)) {
 			

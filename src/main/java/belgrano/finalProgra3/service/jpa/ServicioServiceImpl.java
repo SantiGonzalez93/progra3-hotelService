@@ -38,9 +38,7 @@ public class ServicioServiceImpl implements IServicioService {
 
 	@Override
 	public boolean exists(Long id) {
-		return  id != null
-				? repositoryServicio.existsById(id)
-				: false;
+		return id != null && repositoryServicio.existsById(id);
 	}
 
 }

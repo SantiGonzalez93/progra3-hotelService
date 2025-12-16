@@ -11,8 +11,8 @@ const EmpleadoList: React.FC = () => {
   const [formData, setFormData] = useState({
     nombre: '',
     cargo: '',
-    numeroIdentificacion: 0,
-    salario: 0,
+    numeroIdentificacion: '' as any,
+    salario: '' as any,
     fechaContratacion: ''
   });
 
@@ -44,8 +44,8 @@ const EmpleadoList: React.FC = () => {
       setFormData({
         nombre: '',
         cargo: '',
-        numeroIdentificacion: 0,
-        salario: 0,
+        numeroIdentificacion: '' as any,
+        salario: '' as any,
         fechaContratacion: ''
       });
     }
@@ -68,7 +68,7 @@ const EmpleadoList: React.FC = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'salario' || name === 'numeroIdentificacion' ? parseFloat(value) || 0 : value
+      [name]: value
     }));
   };
 
@@ -76,7 +76,10 @@ const EmpleadoList: React.FC = () => {
     e.preventDefault();
     try {
       const empleadoData = {
-        ...formData,
+        nombre: formData.nombre,
+        cargo: formData.cargo,
+        numeroIdentificacion: Number(formData.numeroIdentificacion),
+        salario: Number(formData.salario),
         fechaContratacion: new Date(formData.fechaContratacion).toISOString()
       };
 
@@ -86,9 +89,8 @@ const EmpleadoList: React.FC = () => {
         updateEmpleado(empleadoActualizado);
       } else {
         const response = await empleadoService.create(empleadoData);
-        if (response.estado) {
-          // El backend devuelve un array, tomamos el primer elemento
-          addEmpleado(response.data[0]);
+        if (response.estado && response.data) {
+          addEmpleado(response.data);
         }
       }
 
@@ -143,7 +145,7 @@ const EmpleadoList: React.FC = () => {
         </div>
       </div>
 
-      {empleados.length === 0 ? (
+      {!empleados || empleados.length === 0 ? (
         <div 
           className="text-center py-5"
           style={{
@@ -179,7 +181,7 @@ const EmpleadoList: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {empleados.map((empleado, index) => (
+              {empleados.filter(e => e && e.id).map((empleado, index) => (
                 <tr 
                   key={empleado.id}
                   style={{ 

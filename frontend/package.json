@@ -49,6 +49,7 @@
     "@types/parse-json": "^4.0.2",
     "@types/prop-types": "^15.7.15",
     "@types/react-transition-group": "^4.4.12",
-    "@types/warning": "^3.0.3"
+    "@types/warning": "^3.0.3",
+    "source-map-loader": "^5.0.0"
   }
 }

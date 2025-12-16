@@ -10,9 +10,9 @@ const HabitacionList: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingHabitacion, setEditingHabitacion] = useState<Habitacion | null>(null);
   const [formData, setFormData] = useState({
-    numero: 0,
+    numero: '' as any,
     tipo: '',
-    precioPorNoche: 0,
+    precioPorNoche: '' as any,
     estado: 'Limpia',
     disponible: true
   });
@@ -53,9 +53,9 @@ const HabitacionList: React.FC = () => {
     } else {
       setEditingHabitacion(null);
       setFormData({
-        numero: 0,
+        numero: '' as any,
         tipo: '',
-        precioPorNoche: 0,
+        precioPorNoche: '' as any,
         estado: 'Limpia',
         disponible: true
       });
@@ -79,23 +79,29 @@ const HabitacionList: React.FC = () => {
     const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
-              (name === 'precioPorNoche' || name === 'numero' ? parseFloat(value) || 0 : value)
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const habitacionData = {
+        numero: Number(formData.numero),
+        tipo: formData.tipo,
+        precioPorNoche: Number(formData.precioPorNoche),
+        estado: formData.estado,
+        disponible: formData.disponible
+      };
+
       if (editingHabitacion) {
-        const habitacionActualizada = { ...formData, id: editingHabitacion.id };
+        const habitacionActualizada = { ...habitacionData, id: editingHabitacion.id };
         await habitacionService.update(habitacionActualizada);
         updateHabitacion(habitacionActualizada);
       } else {
-        const response = await habitacionService.create(formData);
-        if (response.estado) {
-          // El backend devuelve un array, tomamos el primer elemento
-          addHabitacion(response.data[0]);
+        const response = await habitacionService.create(habitacionData);
+        if (response.estado && response.data) {
+          addHabitacion(response.data);
         }
       }
 
@@ -150,7 +156,7 @@ const HabitacionList: React.FC = () => {
         </div>
       </div>
 
-      {habitaciones.length === 0 ? (
+      {!habitaciones || habitaciones.length === 0 ? (
         <div 
           className="text-center py-5"
           style={{
@@ -186,7 +192,7 @@ const HabitacionList: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {habitaciones.map((habitacion, index) => (
+              {habitaciones.filter(h => h && h.id).map((habitacion, index) => (
                 <tr 
                   key={habitacion.id}
                   style={{ 

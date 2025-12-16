@@ -118,11 +118,11 @@ export const reservaService = {
     const response = await api.get(`/reserva/${id}`);
     return response.data;
   },
-  create: async (reserva: ReservaRequest): Promise<ApiResponse<Reserva>> => {
+  create: async (reserva: ReservaRequest): Promise<ApiResponseSingle<Reserva>> => {
     const response = await api.post('/reserva', reserva);
     return response.data;
   },
-  update: async (reserva: Reserva): Promise<ApiResponse<Reserva>> => {
+  update: async (reserva: Reserva): Promise<ApiResponseSingle<Reserva>> => {
     const response = await api.put('/reserva', reserva);
     return response.data;
   },

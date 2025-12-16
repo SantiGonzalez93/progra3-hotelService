@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Cliente, Empleado, Habitacion, Servicio } from '../types';
-import { clienteService, empleadoService, habitacionService, servicioService } from '../services/api';
+import { Cliente, Empleado, Habitacion, Servicio, Reserva } from '../types';
+import { clienteService, empleadoService, habitacionService, servicioService, reservaService } from '../services/api';
 
 interface AppContextType {
   // Datos
@@ -8,6 +8,7 @@ interface AppContextType {
   empleados: Empleado[];
   habitaciones: Habitacion[];
   servicios: Servicio[];
+  reservas: Reserva[];
   
   // Estados de carga
   loading: boolean;
@@ -18,6 +19,7 @@ interface AppContextType {
   refreshEmpleados: () => Promise<void>;
   refreshHabitaciones: () => Promise<void>;
   refreshServicios: () => Promise<void>;
+  refreshReservas: () => Promise<void>;
   refreshAll: () => Promise<void>;
   
   // Funciones para agregar datos
@@ -25,18 +27,21 @@ interface AppContextType {
   addEmpleado: (empleado: Empleado) => void;
   addHabitacion: (habitacion: Habitacion) => void;
   addServicio: (servicio: Servicio) => void;
+  addReserva: (reserva: Reserva) => void;
   
   // Funciones para actualizar datos
   updateCliente: (cliente: Cliente) => void;
   updateEmpleado: (empleado: Empleado) => void;
   updateHabitacion: (habitacion: Habitacion) => void;
   updateServicio: (servicio: Servicio) => void;
+  updateReserva: (reserva: Reserva) => void;
   
   // Funciones para eliminar datos
   removeCliente: (id: number) => void;
   removeEmpleado: (id: number) => void;
   removeHabitacion: (id: number) => void;
   removeServicio: (id: number) => void;
+  removeReserva: (id: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -51,6 +56,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [empleados, setEmpleados] = useState<Empleado[]>([]);
   const [habitaciones, setHabitaciones] = useState<Habitacion[]>([]);
   const [servicios, setServicios] = useState<Servicio[]>([]);
+  const [reservas, setReservas] = useState<Reserva[]>([]);
   
   // Estados de carga
   const [loading, setLoading] = useState(true);
@@ -64,11 +70,12 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       
       console.log('🔄 Cargando todos los datos...');
       
-      const [clientesRes, empleadosRes, habitacionesRes, serviciosRes] = await Promise.all([
+      const [clientesRes, empleadosRes, habitacionesRes, serviciosRes, reservasRes] = await Promise.all([
         clienteService.getAll(),
         empleadoService.getAll(),
         habitacionService.getAll(),
-        servicioService.getAll()
+        servicioService.getAll(),
+        reservaService.getAll()
       ]);
       
       if (clientesRes.estado) {
@@ -97,6 +104,13 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         console.log(`✅ Servicios cargados: ${serviciosRes.data.length}`);
       } else {
         throw new Error(`Error al cargar servicios: ${serviciosRes.message?.join(', ')}`);
+      }
+      
+      if (reservasRes.estado) {
+        setReservas(reservasRes.data);
+        console.log(`✅ Reservas cargadas: ${reservasRes.data.length}`);
+      } else {
+        throw new Error(`Error al cargar reservas: ${reservasRes.message?.join(', ')}`);
       }
       
       console.log('🎉 Todos los datos cargados exitosamente');
@@ -159,6 +173,17 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }
   };
 
+  const refreshReservas = async () => {
+    try {
+      const response = await reservaService.getAll();
+      if (response.estado) {
+        setReservas(response.data);
+      }
+    } catch (err) {
+      console.error('Error al refrescar reservas:', err);
+    }
+  };
+
   const refreshAll = async () => {
     await loadAllData();
   };
@@ -180,6 +205,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     setServicios(prev => [...prev, servicio]);
   };
 
+  const addReserva = (reserva: Reserva) => {
+    setReservas(prev => [...prev, reserva]);
+  };
+
   // Funciones para actualizar datos
   const updateCliente = (cliente: Cliente) => {
     setClientes(prev => prev.map(c => c.id === cliente.id ? cliente : c));
@@ -195,6 +224,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const updateServicio = (servicio: Servicio) => {
     setServicios(prev => prev.map(s => s.id === servicio.id ? servicio : s));
+  };
+
+  const updateReserva = (reserva: Reserva) => {
+    setReservas(prev => prev.map(r => r.id === reserva.id ? reserva : r));
   };
 
   // Funciones para eliminar datos
@@ -214,12 +247,17 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     setServicios(prev => prev.filter(s => s.id !== id));
   };
 
+  const removeReserva = (id: number) => {
+    setReservas(prev => prev.filter(r => r.id !== id));
+  };
+
   const value: AppContextType = {
     // Datos
     clientes,
     empleados,
     habitaciones,
     servicios,
+    reservas,
     
     // Estados
     loading,
@@ -230,6 +268,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     refreshEmpleados,
     refreshHabitaciones,
     refreshServicios,
+    refreshReservas,
     refreshAll,
     
     // Funciones de agregar
@@ -237,18 +276,21 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     addEmpleado,
     addHabitacion,
     addServicio,
+    addReserva,
     
     // Funciones de actualizar
     updateCliente,
     updateEmpleado,
     updateHabitacion,
     updateServicio,
+    updateReserva,
     
     // Funciones de eliminar
     removeCliente,
     removeEmpleado,
     removeHabitacion,
     removeServicio,
+    removeReserva,
   };
 
   return (

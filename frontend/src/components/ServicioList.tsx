@@ -13,7 +13,7 @@ const ServicioList: React.FC = () => {
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
-    precio: 0,
+    precio: '' as any,
     disponibilidad: true
   });
 
@@ -40,7 +40,7 @@ const ServicioList: React.FC = () => {
       setFormData({
         nombre: '',
         descripcion: '',
-        precio: 0,
+        precio: '' as any,
         disponibilidad: true
       });
     }
@@ -62,23 +62,28 @@ const ServicioList: React.FC = () => {
     const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
-              (name === 'precio' ? parseFloat(value) || 0 : value)
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const servicioData = {
+        nombre: formData.nombre,
+        descripcion: formData.descripcion,
+        precio: Number(formData.precio),
+        disponibilidad: formData.disponibilidad
+      };
+
       if (editingServicio) {
-        const servicioActualizado = { ...formData, id: editingServicio.id };
+        const servicioActualizado = { ...servicioData, id: editingServicio.id };
         await servicioService.update(servicioActualizado);
         updateServicio(servicioActualizado);
       } else {
-        const response = await servicioService.create(formData);
-        if (response.estado) {
-          // El backend devuelve un array, tomamos el primer elemento
-          addServicio(response.data[0]);
+        const response = await servicioService.create(servicioData);
+        if (response.estado && response.data) {
+          addServicio(response.data);
         }
       }
 
@@ -157,7 +162,7 @@ const ServicioList: React.FC = () => {
         </div>
       </div>
 
-      {servicios.length === 0 ? (
+      {!servicios || servicios.length === 0 ? (
         <Alert variant="info">
           No hay servicios registrados.
         </Alert>
@@ -174,7 +179,7 @@ const ServicioList: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {servicios.map((servicio) => (
+            {servicios.filter(s => s && s.id).map((servicio) => (
               <tr key={servicio.id}>
                 <td>{servicio.id}</td>
                 <td>
@@ -212,7 +217,7 @@ const ServicioList: React.FC = () => {
         </Table>
       ) : (
         <div className="row">
-          {servicios.map((servicio) => (
+          {servicios.filter(s => s && s.id).map((servicio) => (
             <div key={servicio.id} className="col-md-6 col-lg-4 mb-3">
               <Card className="h-100">
                 <Card.Header className="d-flex justify-content-between align-items-center">

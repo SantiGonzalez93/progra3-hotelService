@@ -10,6 +10,13 @@ const api = axios.create({
   },
 });
 
+// Tipo para respuestas que devuelven un objeto único (create, update, getById)
+interface ApiResponseSingle<T> {
+  estado: boolean;
+  message: string[];
+  data: T;
+}
+
 export const clienteService = {
   getAll: async (): Promise<ApiResponse<Cliente>> => {
     const response = await api.get('/cliente');
@@ -19,7 +26,7 @@ export const clienteService = {
     const response = await api.get(`/cliente/${id}`);
     return response.data;
   },
-  create: async (cliente: Omit<Cliente, 'id'>): Promise<{estado: boolean, message: string[], data: Cliente}> => {
+  create: async (cliente: Omit<Cliente, 'id'>): Promise<ApiResponseSingle<Cliente>> => {
     const response = await api.post('/cliente', cliente);
     return response.data;
   },
@@ -42,7 +49,7 @@ export const empleadoService = {
     const response = await api.get(`/empleado/${id}`);
     return response.data;
   },
-  create: async (empleado: Omit<Empleado, 'id'>): Promise<ApiResponse<Empleado>> => {
+  create: async (empleado: Omit<Empleado, 'id'>): Promise<ApiResponseSingle<Empleado>> => {
     const response = await api.post('/empleado', empleado);
     return response.data;
   },
@@ -65,7 +72,7 @@ export const habitacionService = {
     const response = await api.get(`/habitacion/${id}`);
     return response.data;
   },
-  create: async (habitacion: Omit<Habitacion, 'id'>): Promise<ApiResponse<Habitacion>> => {
+  create: async (habitacion: Omit<Habitacion, 'id'>): Promise<ApiResponseSingle<Habitacion>> => {
     const response = await api.post('/habitacion', habitacion);
     return response.data;
   },
@@ -88,7 +95,7 @@ export const servicioService = {
     const response = await api.get(`/servicio/${id}`);
     return response.data;
   },
-  create: async (servicio: Omit<Servicio, 'id'>): Promise<ApiResponse<Servicio>> => {
+  create: async (servicio: Omit<Servicio, 'id'>): Promise<ApiResponseSingle<Servicio>> => {
     const response = await api.post('/servicio', servicio);
     return response.data;
   },
@@ -111,11 +118,11 @@ export const reservaService = {
     const response = await api.get(`/reserva/${id}`);
     return response.data;
   },
-  create: async (reserva: ReservaRequest): Promise<ApiResponse<Reserva>> => {
+  create: async (reserva: ReservaRequest): Promise<ApiResponseSingle<Reserva>> => {
     const response = await api.post('/reserva', reserva);
     return response.data;
   },
-  update: async (reserva: Reserva): Promise<ApiResponse<Reserva>> => {
+  update: async (reserva: Reserva): Promise<ApiResponseSingle<Reserva>> => {
     const response = await api.put('/reserva', reserva);
     return response.data;
   },

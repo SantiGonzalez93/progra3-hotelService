@@ -1,6 +1,8 @@
 # IDE - IntelliJ IDEA
 .idea/
 
+.vscode/
+
 # Maven
 target/
 

@@ -103,10 +103,17 @@ const EmpleadoList: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este empleado?')) {
       try {
-        await empleadoService.delete(id);
-        removeEmpleado(id);
-      } catch (error) {
+        const response = await empleadoService.delete(id);
+        if (response.estado) {
+          removeEmpleado(id);
+          alert('Empleado eliminado exitosamente');
+        } else {
+          alert('Error al eliminar el empleado: ' + (response.message?.join(', ') || 'Error desconocido'));
+        }
+      } catch (error: any) {
         console.error('Error al eliminar el empleado:', error);
+        const errorMessage = error.response?.data?.message?.join(', ') || error.message || 'Error desconocido';
+        alert('Error al eliminar el empleado: ' + errorMessage);
       }
     }
   };

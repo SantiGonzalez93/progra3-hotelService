@@ -91,10 +91,14 @@ public class HabitacionController {
     public ResponseEntity<ResponseDto<Habitacion>> delete(@PathVariable("id") Long id) {
 
         if (service.exists(id)) {
-
-            service.deleteById(id);
-            return new ResponseEntity<>(new ResponseDto<>(true, "Habitacion con id: " + id.toString() + " ha sido eliminada"), HttpStatus.OK);
-
+            try {
+                service.deleteById(id);
+                return new ResponseEntity<>(new ResponseDto<>(true, "Habitacion con id: " + id.toString() + " ha sido eliminada"), HttpStatus.OK);
+            } catch (RuntimeException e) {
+                return new ResponseEntity<>(new ResponseDto<>(false, e.getMessage()), HttpStatus.BAD_REQUEST);
+            } catch (Exception e) {
+                return new ResponseEntity<>(new ResponseDto<>(false, "Error al eliminar la habitación: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
         } else {
 
             return new ResponseEntity<>(new ResponseDto<>(false, "Habitacion con id: " + id.toString() + " No existe"), HttpStatus.BAD_REQUEST);

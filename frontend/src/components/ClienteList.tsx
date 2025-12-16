@@ -80,10 +80,17 @@ const ClienteList: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este cliente?')) {
       try {
-        await clienteService.delete(id);
-        removeCliente(id);
-      } catch (error) {
+        const response = await clienteService.delete(id);
+        if (response.estado) {
+          removeCliente(id);
+          alert('Cliente eliminado exitosamente');
+        } else {
+          alert('Error al eliminar el cliente: ' + (response.message?.join(', ') || 'Error desconocido'));
+        }
+      } catch (error: any) {
         console.error('Error al eliminar el cliente:', error);
+        const errorMessage = error.response?.data?.message?.join(', ') || error.message || 'Error desconocido';
+        alert('Error al eliminar el cliente: ' + errorMessage);
       }
     }
   };

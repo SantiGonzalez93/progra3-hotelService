@@ -114,10 +114,17 @@ const HabitacionList: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta habitación?')) {
       try {
-        await habitacionService.delete(id);
-        removeHabitacion(id);
-      } catch (error) {
+        const response = await habitacionService.delete(id);
+        if (response.estado) {
+          removeHabitacion(id);
+          alert('Habitación eliminada exitosamente');
+        } else {
+          alert('Error al eliminar la habitación: ' + (response.message?.join(', ') || 'Error desconocido'));
+        }
+      } catch (error: any) {
         console.error('Error al eliminar la habitación:', error);
+        const errorMessage = error.response?.data?.message?.join(', ') || error.message || 'Error desconocido';
+        alert('Error al eliminar la habitación: ' + errorMessage);
       }
     }
   };

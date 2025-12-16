@@ -230,12 +230,17 @@ const ReservaWizard: React.FC = () => {
   const handleDeleteReserva = async (id: number) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta reserva?')) {
       try {
-        await reservaService.delete(id);
-        removeReserva(id);
-        alert('Reserva eliminada exitosamente');
-      } catch (error) {
+        const response = await reservaService.delete(id);
+        if (response.estado) {
+          removeReserva(id);
+          alert('Reserva eliminada exitosamente');
+        } else {
+          alert('Error al eliminar la reserva: ' + (response.message?.join(', ') || 'Error desconocido'));
+        }
+      } catch (error: any) {
         console.error('Error al eliminar la reserva:', error);
-        alert('Error al eliminar la reserva');
+        const errorMessage = error.response?.data?.message?.join(', ') || error.message || 'Error desconocido';
+        alert('Error al eliminar la reserva: ' + errorMessage);
       }
     }
   };

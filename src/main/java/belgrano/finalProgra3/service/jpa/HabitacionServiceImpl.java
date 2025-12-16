@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import belgrano.finalProgra3.entity.Habitacion;
 import belgrano.finalProgra3.repository.HabitacionRepository;
+import belgrano.finalProgra3.repository.ReservaRepository;
 import belgrano.finalProgra3.service.IHabitacionService;
 
 @Service
@@ -14,6 +16,9 @@ public class HabitacionServiceImpl implements IHabitacionService {
 
 	@Autowired
 	private HabitacionRepository repositoryHabitacion;
+	
+	@Autowired
+	private ReservaRepository reservaRepository;
 	
 	@Override
 	public List<Habitacion> getAll() {
@@ -31,15 +36,25 @@ public class HabitacionServiceImpl implements IHabitacionService {
 	}
 
 	@Override
+	@Transactional
 	public void delete(Long id) {
+		// Verificar si hay reservas asociadas
+		List<belgrano.finalProgra3.entity.Reserva> reservas = reservaRepository.findByHabitacionId(id);
+		if (reservas != null && !reservas.isEmpty()) {
+			throw new RuntimeException("No se puede eliminar la habitación porque tiene " + reservas.size() + " reserva(s) asociada(s)");
+		}
 		repositoryHabitacion.deleteById(id);
-		
 	}
 
 	@Override
+	@Transactional
 	public void deleteById(Long id) {
+		// Verificar si hay reservas asociadas
+		List<belgrano.finalProgra3.entity.Reserva> reservas = reservaRepository.findByHabitacionId(id);
+		if (reservas != null && !reservas.isEmpty()) {
+			throw new RuntimeException("No se puede eliminar la habitación porque tiene " + reservas.size() + " reserva(s) asociada(s)");
+		}
 		repositoryHabitacion.deleteById(id);
-		
 	}
 
 	@Override

@@ -2,10 +2,12 @@ package belgrano.finalProgra3.service.jpa;
 
 import belgrano.finalProgra3.dto.ReservaRequestDto;
 import belgrano.finalProgra3.entity.Cliente;
+import belgrano.finalProgra3.entity.Factura;
 import belgrano.finalProgra3.entity.Habitacion;
 import belgrano.finalProgra3.entity.Reserva;
 import belgrano.finalProgra3.entity.Servicio;
 import belgrano.finalProgra3.repository.ClienteRepository;
+import belgrano.finalProgra3.repository.FacturaRepository;
 import belgrano.finalProgra3.repository.HabitacionRepository;
 import belgrano.finalProgra3.repository.ReservaRepository;
 import belgrano.finalProgra3.repository.ServicioRepository;
@@ -13,12 +15,14 @@ import belgrano.finalProgra3.service.IReservaService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -32,6 +36,8 @@ public class ReservaServiceImpl implements IReservaService {
     private ClienteRepository clienteRepository;
     @Autowired
     private ServicioRepository servicioRepository;
+    @Autowired
+    private FacturaRepository facturaRepository;
 
 
     @Override
@@ -56,7 +62,13 @@ public class ReservaServiceImpl implements IReservaService {
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
+        // Verificar si hay facturas asociadas
+        Optional<Factura> factura = facturaRepository.findByReserva_Id(id);
+        if (factura.isPresent()) {
+            throw new RuntimeException("No se puede eliminar la reserva porque tiene una factura asociada");
+        }
         repository.deleteById(id);
     }
 

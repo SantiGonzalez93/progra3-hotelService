@@ -96,10 +96,17 @@ const ServicioList: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este servicio?')) {
       try {
-        await servicioService.delete(id);
-        removeServicio(id);
-      } catch (error) {
+        const response = await servicioService.delete(id);
+        if (response.estado) {
+          removeServicio(id);
+          alert('Servicio eliminado exitosamente');
+        } else {
+          alert('Error al eliminar el servicio: ' + (response.message?.join(', ') || 'Error desconocido'));
+        }
+      } catch (error: any) {
         console.error('Error al eliminar el servicio:', error);
+        const errorMessage = error.response?.data?.message?.join(', ') || error.message || 'Error desconocido';
+        alert('Error al eliminar el servicio: ' + errorMessage);
       }
     }
   };

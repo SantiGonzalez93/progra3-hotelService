@@ -74,10 +74,14 @@ public class ReservaController {
     public ResponseEntity<ResponseDto<Reserva>> delete(@PathVariable("id") Long id) {
 
         if (service.exists(id)) {
-
-            service.deleteById(id);
-            return new ResponseEntity<>(new ResponseDto<>(true, "Reserva con id: " + id.toString() + " ha sido eliminada"), HttpStatus.OK);
-
+            try {
+                service.deleteById(id);
+                return new ResponseEntity<>(new ResponseDto<>(true, "Reserva con id: " + id.toString() + " ha sido eliminada"), HttpStatus.OK);
+            } catch (RuntimeException e) {
+                return new ResponseEntity<>(new ResponseDto<>(false, e.getMessage()), HttpStatus.BAD_REQUEST);
+            } catch (Exception e) {
+                return new ResponseEntity<>(new ResponseDto<>(false, "Error al eliminar la reserva: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
         } else {
 
             return new ResponseEntity<>(new ResponseDto<>(false, "Reserva con id: " + id.toString() + " no existe"), HttpStatus.BAD_REQUEST);

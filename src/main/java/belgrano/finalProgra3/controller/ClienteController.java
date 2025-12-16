@@ -82,10 +82,14 @@ public class ClienteController {
     public ResponseEntity<ResponseDto<Cliente>> delete(@PathVariable("id") Long id) {
 
         if (service.exists(id)) {
-
-            service.deleteById(id);
-            return new ResponseEntity<>(new ResponseDto<>(true, "Cliente con id: " + id.toString() + " ha sido eliminado"), HttpStatus.OK);
-
+            try {
+                service.deleteById(id);
+                return new ResponseEntity<>(new ResponseDto<>(true, "Cliente con id: " + id.toString() + " ha sido eliminado"), HttpStatus.OK);
+            } catch (RuntimeException e) {
+                return new ResponseEntity<>(new ResponseDto<>(false, e.getMessage()), HttpStatus.BAD_REQUEST);
+            } catch (Exception e) {
+                return new ResponseEntity<>(new ResponseDto<>(false, "Error al eliminar el cliente: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
         } else {
 
             return new ResponseEntity<>(new ResponseDto<>(false, "Cliente con id: " + id.toString() + " No existe"), HttpStatus.BAD_REQUEST);

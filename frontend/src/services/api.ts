@@ -10,6 +10,23 @@ const api = axios.create({
   },
 });
 
+// Interceptor para manejar errores HTTP y convertir respuestas 400 con ResponseDto válido en respuestas normales
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Si el error tiene una respuesta con un ResponseDto válido, devolverlo como respuesta normal
+    if (error.response && error.response.data && typeof error.response.data === 'object' && 'estado' in error.response.data) {
+      // El backend devolvió un ResponseDto válido, tratarlo como respuesta exitosa
+      return Promise.resolve({
+        ...error.response,
+        data: error.response.data
+      });
+    }
+    // Si no es un ResponseDto válido, lanzar el error normalmente
+    return Promise.reject(error);
+  }
+);
+
 // Tipo para respuestas que devuelven un objeto único (create, update, getById)
 interface ApiResponseSingle<T> {
   estado: boolean;
